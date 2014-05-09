@@ -252,13 +252,21 @@
     </target> 
     
     <target name="deploy-client-platform" depends="init">
-        <property name="_target.platform.name_" value="${target.app.name}_platform"/>        
-        <property name="_target.platform.dir_" value="${workspace.dir}/${_target.platform.name_}"/>  
-        <echo message="Deploying ${_target.platform.name_} ..."/>
-        <delete dir="${_target.platform.dir_}" failonerror="false"/> 
-        <copy todir="${_target.platform.dir_}" overwrite="true" failonerror="false">
-            <fileset dir="${platforms.dir}/${_target.platform.name_}"/> 
-        </copy>      
+        <groovy>
+        <![CDATA[ 
+            def sname = properties['target.platform.name'];
+            if (!sname) sname = properties['target.app.name'];
+            
+            def platform_name = sname + '_platform';
+            def target_platform_dir = properties['workspace.dir'] + '/' + platform_name;
+            def source_platform_dir = properties['platforms.dir'] + '/' + platform_name;
+            ant.echo('Deploying '+ platform_name +' ...');
+            ant.delete(dir: target_platform_dir, failonerror: false);
+            ant.copy(todir: target_platform_dir, overwrite: true, failonerror: false){
+                fileset(dir: source_platform_dir)
+            }
+        ]]> 
+        </groovy>   
     </target>
     
     <target name="run-server" depends="init">

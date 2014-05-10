@@ -164,7 +164,7 @@
         </groovy>
     </target>    
     
-    <target name="deploy-web-resources" depends="init">
+    <target name="deploy-web-resources" depends="init" >
         <property name="_target.web.download.modules.dir_" value="${target.server.dir}/workspace/web/resources/downloads/modules"/>  
         <copy todir="${target.server.dir}/workspace/web/resources" failonerror="false">
             <fileset dir="../../resources" />

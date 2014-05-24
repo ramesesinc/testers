@@ -105,6 +105,26 @@
             </sequential>
         </for> 
     </target>   
+
+    <target name="update-services" depends="init">
+        <property name="_target.shared.modules.dir_" value="${target.server.dir}/workspace/services/shared/v25/modules"/>        
+        <for list="${shared.services}" delimiter=":" param="val">
+            <sequential>
+                <copy todir="${_target.shared.modules.dir_}/@{val}">
+                    <fileset dir="${projects.dir}/server/@{val}"/>
+                </copy>
+            </sequential>
+        </for>    
+        
+        <property name="_target.app.modules.dir_" value="${target.server.dir}/workspace/services/apps/${target.app.name}/modules"/> 
+        <for list="${app.modules}" delimiter=":" param="val">
+            <sequential>
+                <copy todir="${_target.app.modules.dir_}/@{val}">
+                    <fileset dir="${projects.dir}/server/@{val}"/>
+                </copy>
+            </sequential>
+        </for>         
+    </target>     
     
     <target name="deploy-web" depends="init">
         <property name="_target.web.dir_" value="${target.server.dir}/workspace/web"/> 

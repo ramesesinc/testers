@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="shutdown-ehoms-server" default="shutdown" basedir=".">
+<project name="shutdown-clfc-server" default="shutdown" basedir=".">
     
     <target name="init">
         <property file="conf.properties"/>

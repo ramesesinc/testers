@@ -1,5 +1,5 @@
 provider=script
-app.host=localhost:8071
+app.host=localhost:8670
 app.cluster=osiris3
 app.context=notification
 readTimeout=30000

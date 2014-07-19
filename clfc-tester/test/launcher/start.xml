@@ -12,7 +12,8 @@
         </taskdef> 
         <taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy">
             <classpath>
-                <pathelement location="../../lib/groovy-all-1.5.5.jar"/>
+                <pathelement location="C:/RAMESES/platform-libs/client/groovy-all-1.5.5.jar"/>
+                <pathelement location="C:/RAMESES/platform-libs/client/rameses-common2.jar"/>
             </classpath>            
         </taskdef>        
     </target>
@@ -184,7 +185,7 @@
         </groovy>
     </target>    
     
-    <target name="deploy-web-resources" depends="init" >
+    <target name="deploy-web-resources" depends="init">
         <property name="_target.web.download.modules.dir_" value="${target.server.dir}/workspace/web/resources/downloads/modules"/>  
         <copy todir="${target.server.dir}/workspace/web/resources" failonerror="false">
             <fileset dir="../../resources" />
@@ -192,7 +193,7 @@
         <delete dir="${_target.web.download.modules.dir_}/modules" failonerror="false"/>
 
         <echo message="Build download core modules ..."/>
-        <for list="${download.core.modules}" delimiter=":" param="val">
+        <for list="${download.core.modules}" delimiter=":" param="val" >
             <sequential> 
                 <antcall target="-do-copy-download-core-module"> 
                     <param name="params_todir" value="${_target.web.download.modules.dir_}/core"/> 
@@ -289,10 +290,26 @@
         </groovy>   
     </target>
     
+    <target name="clear-scripts" depends="init">
+        <groovy>
+        <![CDATA[ 
+            import com.rameses.service.*;
+            
+            def appenv = [
+                'app.host'      : properties['target.app.host'], 
+                'app.context'   : properties['target.app.name'],
+                'app.cluster'   : 'osiris3' 
+            ]; 
+            def proxy = new ScriptServiceContext(appenv).create('SysToolService');
+            proxy.invoke('clearScripts'); 
+        ]]>     
+        </groovy>        
+    </target>
+    
     <target name="run-server" depends="init">
         <exec executable="cmd" dir="${target.server.dir}/bin">
             <arg value="/c"/>
-            <arg value="run2.bat"/>
+            <arg value="run.bat"/>
         </exec>
     </target>
     

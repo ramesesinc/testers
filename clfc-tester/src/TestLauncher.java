@@ -22,7 +22,7 @@ public class TestLauncher {
         env.put("app.debug",true); 
         
         env.put("app.custom", "clfc"); 
-        //env.put("ws.host", "localhost:8060");         
+        env.put("ws.host", "localhost:8060");         
         OsirisTestPlatform.runTest(env, new HashMap(), new HashMap()); 
     }
 }

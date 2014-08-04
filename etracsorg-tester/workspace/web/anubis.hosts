@@ -1,1 +1,1 @@
-default=file:///C:/RAMESES/testers/etracsorg-tester/workspace/web/test
+default=file:///${osiris.base.dir}/workspace/web/test

@@ -1,0 +1,7 @@
+<style>
+div#box { padding:20px; }
+</style>
+
+<div id="box">
+	This the main page. 
+</div>

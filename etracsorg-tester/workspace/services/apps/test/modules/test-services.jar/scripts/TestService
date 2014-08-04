@@ -1,0 +1,13 @@
+
+import com.rameses.annotations.*;
+import com.rameses.http.*;
+
+class TestService
+{
+
+	@ProxyMethod 
+	public def test( params ) {
+		println 'TestService.test: params-> ' + params;
+		return params; 
+	}
+}

@@ -14,6 +14,7 @@ class TestNotificationController
     def entity = [:];
     
     void open() {
-        //notifier.removeMessage(entity); 
+        println entity;
+        notifier.removeMessage(entity); 
     }
 }

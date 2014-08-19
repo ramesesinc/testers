@@ -45,9 +45,9 @@ public class TestNotification extends TestCase {
         data.put("objid", new UID().toString());
         data.put("sender", "SYSTEM ADMINISTRATOR");
         data.put("senderid", "sa");
-        data.put("recipientid", "USR-52d9cfac:14370e49ac3:-7fa2");
-        data.put("recipienttype", "user");
-        data.put("message", "Hello from System Administrator");
+        data.put("recipientid", "APPROVER");
+        data.put("recipienttype", "group");
+        data.put("message", "Welcome APPROVER Group");
         data.put("filetype", "xxx");
         data.put("data", new HashMap()); 
         

@@ -1,5 +1,6 @@
 
 import com.rameses.osiris2.test.OsirisTestPlatform;
+import com.rameses.rcp.framework.ClientContext;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.UIManager;
@@ -22,7 +23,13 @@ public class TestLauncher {
         env.put("app.debug",true); 
         
         env.put("app.custom", "clfc"); 
-        env.put("ws.host", "localhost:8060");         
+        //env.put("ws.host", "localhost:8060");         
+        
+        env.put("fileserver.host", "localhost:8070"); 
+        env.put("fileserver.cluster", "osiris3"); 
+        env.put("fileserver.context", "fileserver"); 
         OsirisTestPlatform.runTest(env, new HashMap(), new HashMap()); 
+        
+        
     }
 }

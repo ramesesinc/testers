@@ -23,7 +23,7 @@
                 <id>jar</id>
             </reference>
             <reference>
-                <foreign-project>rameses-client-notification</foreign-project>
+                <foreign-project>rameses-client-notification2</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>
@@ -79,6 +79,22 @@
                 <id>jar</id>
             </reference>
             <reference>
+                <foreign-project>rameses-gov-etracs-bpls</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
+                <foreign-project>rameses-gov-etracs-bpls-reports</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
                 <foreign-project>rameses-gov-etracs-city</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
@@ -96,6 +112,14 @@
             </reference>
             <reference>
                 <foreign-project>rameses-gov-etracs-rptis</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
+                <foreign-project>rameses-gov-etracs-rptis-municipality</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>
@@ -128,6 +152,14 @@
             </reference>
             <reference>
                 <foreign-project>rameses-rules-mgmt</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
+                <foreign-project>rameses-workflow-mgmt</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>

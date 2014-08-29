@@ -1,5 +1,5 @@
 dialect=mysql
 driverClass=com.mysql.jdbc.Driver
-url=jdbc:mysql://localhost/mysql
+url=jdbc:mysql://localhost/etracs25_test
 user=root
 pwd=1234

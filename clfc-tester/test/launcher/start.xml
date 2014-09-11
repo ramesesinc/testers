@@ -27,6 +27,8 @@
     = COPY OSIRIS SERVER 
     =======================================================-->
     <target name="copy-osiris3-server">
+        <delete dir="${target.server.dir}/bin"/>
+        <delete dir="${target.server.dir}/lib"/>
         <copy todir="${target.server.dir}/bin" overwrite="true">
             <fileset dir="${osiris.server.dir}/bin"/>
         </copy>
@@ -48,25 +50,9 @@
     
     <target name="deploy-server-libs" depends="init">
         <!-- remove server libs from workspace -->
-        <property name="_target.server.lib.dir_" value="${target.server.dir}/lib"/> 
-        <dirset id="target.server.lib.name" includes="*.jar" dir="${_target.server.lib.dir_}"/>
-        <property name="target.server.lib.names" refid="target.server.lib.name"/> 
-        <for list="${target.server.lib.names}" delimiter=";" param="val">
-            <sequential> 
-                <delete file="${_target.server.lib.dir_}/@{val}"/> 
-            </sequential>
-        </for> 
-        
-        <!-- copy server libs to workspace -->
-        <property name="_source.server.lib.dir_" value="${platform-libs.dir}/server"/> 
-        <dirset id="source.server.lib.name" includes="*.jar" dir="${_source.server.lib.dir_}"/>
-        <property name="source.server.lib.names" refid="source.server.lib.name"/> 
-        <for list="${source.server.lib.names}" delimiter=";" param="val">
-            <sequential>
-                <echo> Copying @{val} ... </echo>
-                <copy file="${_source.server.lib.dir_}/@{val}" todir="${_target.server.lib.dir_}"/>
-            </sequential>
-        </for>
+        <copy todir="${target.server.dir}/lib" overwrite="true" verbose="true">
+            <fileset dir="${platform-libs.dir}/server"/>
+        </copy>
     </target>
 
     <target name="deploy-services" depends="init">

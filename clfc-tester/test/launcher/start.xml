@@ -19,7 +19,7 @@
         </taskdef>        
     </target>
     
-    <target name="build" depends="init, copy-osiris3-server, deploy-server-libs, deploy-services, deploy-datasources, deploy-apps, deploy-web, deploy-web-resources, deploy-client-platform"></target>
+    <target name="build" depends="init, copy-osiris3-server, deploy-server-libs, deploy-services, deploy-datasources, deploy-apps, deploy-web, deploy-web-resources, deploy-client-platform" description="Build server"></target>
     
     <target name="start" depends="build, run-server"></target>
     
@@ -27,8 +27,8 @@
     = COPY OSIRIS SERVER 
     =======================================================-->
     <target name="copy-osiris3-server">
-        <delete dir="${target.server.dir}/bin"/>
-        <delete dir="${target.server.dir}/lib"/>
+        <delete dir="${target.server.dir}/bin" failonerror="false"/>
+        <delete dir="${target.server.dir}/lib" failonerror="false"/>
         <copy todir="${target.server.dir}/bin" overwrite="true">
             <fileset dir="${osiris.server.dir}/bin"/>
         </copy>
@@ -49,9 +49,8 @@
     </target>
     
     <target name="deploy-server-libs" depends="init">
-        <!-- remove server libs from workspace -->
-        <copy todir="${target.server.dir}/lib" overwrite="true" verbose="true">
-            <fileset dir="${platform-libs.dir}/server"/>
+        <copy todir="${target.server.dir}/lib" overwrite="true">
+            <fileset dir="${platform-libs.dir}/server" includes="*.jar"/> 
         </copy>
     </target>
 
@@ -61,7 +60,7 @@
         
         <for list="${shared.services}" delimiter=":" param="val">
             <sequential>
-                <copy todir="${_target.server.modules.dir_}/@{val}">
+                <copy todir="${_target.server.modules.dir_}/@{val}" overwrite="true">
                     <fileset dir="${projects.dir}/server/@{val}"/>
                 </copy>
             </sequential>
@@ -69,7 +68,8 @@
     </target>
     
     <target name="deploy-datasources" depends="init">
-        <copy todir="${target.services.dir}/datasources">
+        <delete dir="${target.services.dir}/datasources" failonerror="false"/>
+        <copy todir="${target.services.dir}/datasources" overwrite="true">
             <fileset dir="../datasources"/> 
         </copy>
     </target>    
@@ -78,16 +78,16 @@
         <property name="_target.app.dir_" value="${target.services.dir}/apps/${target.app.name}"/> 
         <delete dir="${_target.app.dir_}" failonerror="false"/> 
         <copy file="../app.conf" todir="${_target.app.dir_}" overwrite="true"/> 
-        <copy todir="${_target.app.dir_}/adapters">
+        <copy todir="${_target.app.dir_}/adapters" overwrite="true">
             <fileset dir="../adapters"/> 
         </copy>
-        <copy todir="${_target.app.dir_}/connections">
+        <copy todir="${_target.app.dir_}/connections" overwrite="true">
             <fileset dir="../connections"/> 
         </copy>        
         
         <for list="${app.modules}" delimiter=":" param="val">
             <sequential>
-                <copy todir="${_target.app.dir_}/modules/@{val}">
+                <copy todir="${_target.app.dir_}/modules/@{val}" overwrite="true">
                     <fileset dir="${projects.dir}/server/@{val}"/>
                 </copy>
             </sequential>
@@ -98,7 +98,7 @@
         <property name="_target.shared.modules.dir_" value="${target.server.dir}/workspace/services/shared/v25/modules"/>        
         <for list="${shared.services}" delimiter=":" param="val">
             <sequential>
-                <copy todir="${_target.shared.modules.dir_}/@{val}">
+                <copy todir="${_target.shared.modules.dir_}/@{val}" overwrite="true">
                     <fileset dir="${projects.dir}/server/@{val}"/>
                 </copy>
             </sequential>
@@ -107,7 +107,7 @@
         <property name="_target.app.modules.dir_" value="${target.server.dir}/workspace/services/apps/${target.app.name}/modules"/> 
         <for list="${app.modules}" delimiter=":" param="val">
             <sequential>
-                <copy todir="${_target.app.modules.dir_}/@{val}">
+                <copy todir="${_target.app.modules.dir_}/@{val}" overwrite="true">
                     <fileset dir="${projects.dir}/server/@{val}"/>
                 </copy>
             </sequential>
@@ -174,7 +174,7 @@
     
     <target name="deploy-web-resources" depends="init">
         <property name="_target.web.download.modules.dir_" value="${target.server.dir}/workspace/web/resources/downloads/modules"/>  
-        <copy todir="${target.server.dir}/workspace/web/resources" failonerror="false">
+        <copy todir="${target.server.dir}/workspace/web/resources" overwrite="true" failonerror="false">
             <fileset dir="../../resources" />
         </copy>
         <delete dir="${_target.web.download.modules.dir_}/modules" failonerror="false"/>
@@ -293,7 +293,7 @@
         </groovy>        
     </target>
     
-    <target name="run-server" depends="init">
+    <target name="run-server" depends="init" description="Run server">
         <exec executable="cmd" dir="${target.server.dir}/bin">
             <arg value="/c"/>
             <arg value="run.bat"/>

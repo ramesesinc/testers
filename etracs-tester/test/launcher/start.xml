@@ -278,7 +278,7 @@
     <target name="run-server" depends="init">
         <exec executable="cmd" dir="${target.server.dir}/bin">
             <arg value="/c"/>
-            <arg value="run.bat"/>
+            <arg value="run2.bat"/>
         </exec>
     </target>
         

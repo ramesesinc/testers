@@ -3,7 +3,6 @@
     
     <target name="init">
         <property file="conf.properties"/>
-        <property name="incubation.dir" value="${rameses.dir}/incubation"/>
         
         <taskdef resource="net/sf/antcontrib/antcontrib.properties">
             <classpath>
@@ -12,231 +11,274 @@
         </taskdef> 
         <taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy">
             <classpath>
-                <pathelement location="C:/RAMESES/platform-libs/client/groovy-all-1.6.9.jar"/>
-                <pathelement location="C:/RAMESES/platform-libs/client/rameses-common2.jar"/>
-            </classpath>            
-        </taskdef>        
+                <pathelement location="${platform.libs.dir}/client/groovy-all-1.6.9.jar"/>
+                <pathelement location="${platform.libs.dir}/client/rameses-common2.jar"/>
+            </classpath> 
+        </taskdef>  
+
+        <groovy>
+        <![CDATA[
+            def modulename = properties['lgu.type'];
+            if (!modulename) {
+                modulename = 'municipality';
+                properties['lgu.type'] = modulename;
+            } else if (modulename == 'remote') {
+                modulename = properties['remote.type']; 
+            } 
+
+            def conffile = new java.io.File(properties['basedir'] +'/modules/'+ modulename +'/conf.properties'); 
+            if (conffile.exists()) { 
+                ant.property(file: conffile.absolutePath); 
+                ant.property(name: 'setup.conf.path', value: conffile.absolutePath)
+            } else { 
+                throw new Exception(conffile.absolutePath + ' does not exist'); 
+            }  
+
+            //ant.echoproperties();
+        ]]>
+        </groovy>
     </target>
     
-    <target name="build" depends="init, copy-osiris3-server, deploy-server-libs, deploy-services, deploy-datasources, deploy-apps, deploy-web, deploy-web-resources, deploy-client-platform"></target>
+    <target name="build" depends="init, -build-osiris3-server, -build-app, -build-web, -build-updates" description="Build server"></target>
     
-    <target name="start" depends="build, run-server"></target>
+    <target name="run-server" depends="init" description="Run server">
+        <exec executable="cmd" dir="${target.server.dir}/bin">
+            <arg value="/c"/>
+            <arg value="run.bat"/>
+        </exec>
+    </target>
+
+    <target name="start" depends="build, run-server" description="Build and run server"></target>
     
-    <!--=====================================================
-    = COPY OSIRIS SERVER 
-    =======================================================-->
-    <target name="copy-osiris3-server">
-        <delete dir="${target.server.dir}/lib" />
+    <target name="-build-osiris3-server">    
+        <delete dir="${target.server.dir}/bin" failonerror="false"/> 
+        <delete dir="${target.server.dir}/lib" failonerror="false"/> 
+
         <copy todir="${target.server.dir}/bin" overwrite="true">
-            <fileset dir="${osiris.server.dir}/bin"/>
+            <fileset dir="${osiris3.server.dir}/bin"/>
+        </copy>
+        <copy todir="${target.server.dir}/bin" overwrite="true" file="${basedir}/settings/server.conf"/> 
+
+        <copy todir="${target.server.dir}/lib" overwrite="true">
+            <fileset dir="${osiris3.server.dir}/lib"/>
         </copy>
         <copy todir="${target.server.dir}/lib" overwrite="true">
-            <fileset dir="${osiris.server.dir}/lib"/>
+            <fileset dir="${platform.libs.dir}/server" includes="*.jar"/>
         </copy>
-        
-        <loadfile srcfile="../server.conf" property="server.conf"/> 
-        <groovy>
-            def str = project.getProperty('server.conf');
-            properties.each{k,v-> 
-                str = str.replaceAll('\\$\\{'+ k +'\\}', v);  
-            }
-            properties['server.conf.replaced']=str;
-        </groovy>
-        <echo message="Building server.conf ..."/>
-        <echo file="${target.server.dir}/bin/server.conf">${server.conf.replaced}</echo> 
-    </target>
-    
-    <target name="deploy-server-libs" depends="init">
-        <copy todir="${target.server.dir}/lib"> 
-            <fileset dir="${platform-libs.dir}/server" includes="*.jar"/> 
-        </copy> 
-    </target>
 
-    <target name="deploy-services" depends="init">
-        <property name="_target.server.modules.dir_" value="${target.server.dir}/workspace/services/shared/v25/modules"/>        
-        <delete dir="${_target.server.modules.dir_}" failonerror="false"/> 
-        
-        <for list="${shared.services}" delimiter=":" param="val">
-            <sequential>
-                <copy todir="${_target.server.modules.dir_}/@{val}">
-                    <fileset dir="${projects.dir}/server/@{val}"/>
-                </copy>
-            </sequential>
-        </for>
-    </target>
-    
-    <target name="deploy-datasources" depends="init">
-        <delete dir="${target.services.dir}/datasources"/>
-        <copy todir="${target.services.dir}/datasources">
-            <fileset dir="../datasources"/> 
+        <delete dir="${target.services.dir}/datasources" failonerror="false"/> 
+        <copy todir="${target.services.dir}/datasources" overwrite="true">
+            <fileset dir="${basedir}/datasources"/> 
         </copy>
-    </target>    
-    
-    <target name="deploy-apps" depends="init">
-        <property name="_target.app.dir_" value="${target.services.dir}/apps/${target.app.name}"/> 
-        <delete dir="${_target.app.dir_}" failonerror="false"/> 
-        <copy file="../app.conf" todir="${_target.app.dir_}" overwrite="true"/> 
-        <copy todir="${_target.app.dir_}/adapters">
-            <fileset dir="../adapters"/> 
-        </copy>
-        <copy todir="${_target.app.dir_}/connections">
-            <fileset dir="../connections"/> 
+
+        <groovy>
+        <![CDATA[ 
+            def target_server_dir = properties['target.server.dir']; 
+            def parseExpression = {str-> 
+                if (!str) return '';
+
+                properties.each{k,v-> 
+                    str = str.replaceAll('\\$\\{'+ k +'\\}', v);  
+                }
+                return str; 
+            } 
+
+            ant.echo '';
+            ant.echo 'Build server.conf ...';
+            ant.loadfile(srcfile: target_server_dir+'/bin/server.conf', property:'server.conf'); 
+            ant.echo(
+                message: parseExpression(project.getProperty('server.conf')), 
+                file: target_server_dir+'/bin/server.conf'
+            ); 
+
+            def scanner = ant.fileScanner{
+                fileset(dir: properties['target.services.dir'] + '/datasources') 
+            }
+            for (file in scanner) {
+                def fileid = 'datasources/' + file.name;
+                ant.echo 'Parsing ' + fileid + ' ...';
+                ant.loadfile(srcfile: file, property: fileid);
+                ant.echo(file: file, message: parseExpression(project.getProperty(fileid))); 
+            } 
+
+            ant.echo 'Build shared services ...';
+            ant.delete(dir: properties['target.services.dir'] +'/shared/v25/modules', failonerror:false);            
+            def shared_service_names = properties['shared.services']; 
+            if (shared_service_names) { 
+                shared_service_names.split(':').each{ssn-> 
+                    ant.copy(todir: properties['target.services.dir'] +'/shared/v25/modules/'+ ssn, overwrite:true){
+                        fileset(dir: properties['projects.dir'] + '/server/' + ssn) 
+                    }
+                } 
+            } 
+        ]]> 
+        </groovy> 
+    </target> 
+
+    <target name="-build-app">  
+        <delete dir="${target.app.dir}" failonerror="false"/> 
+        <copy todir="${target.app.dir}/adapters" overwrite="true">
+            <fileset dir="${basedir}/adapters"/>
         </copy>        
-        
-        <for list="${app.modules}" delimiter=":" param="val">
-            <sequential>
-                <copy todir="${_target.app.dir_}/modules/@{val}">
-                    <fileset dir="${projects.dir}/server/@{val}"/>
-                </copy>
-            </sequential>
-        </for> 
-    </target>   
-
-    <target name="update-services" depends="init">
-        <property name="_target.shared.modules.dir_" value="${target.server.dir}/workspace/services/shared/v25/modules"/>        
-        <for list="${shared.services}" delimiter=":" param="val">
-            <sequential>
-                <copy todir="${_target.shared.modules.dir_}/@{val}">
-                    <fileset dir="${projects.dir}/server/@{val}"/>
-                </copy>
-            </sequential>
-        </for>    
-        
-        <property name="_target.app.modules.dir_" value="${target.server.dir}/workspace/services/apps/${target.app.name}/modules"/> 
-        <for list="${app.modules}" delimiter=":" param="val">
-            <sequential>
-                <copy todir="${_target.app.modules.dir_}/@{val}">
-                    <fileset dir="${projects.dir}/server/@{val}"/>
-                </copy>
-            </sequential>
-        </for>         
-    </target>     
-    
-    <target name="deploy-web" depends="init">
-        <property name="_target.web.dir_" value="${target.server.dir}/workspace/web"/> 
-        <copy file="../anubis.hosts" todir="${_target.web.dir_}" overwrite="true"/> 
-        <loadfile srcfile="../anubis.hosts" property="anubis.hosts"/> 
-        <groovy>
-            def str = project.getProperty('anubis.hosts');
-            properties.each{k,v-> 
-                str = str.replaceAll('\\$\\{'+ k +'\\}', v);  
-            }
-            properties['anubis.hosts.replaced']=str;
-        </groovy>
-        <echo message="Building anubis.hosts ..."/>
-        <echo file="${_target.web.dir_}/anubis.hosts">${anubis.hosts.replaced}</echo>         
-        
-        <delete dir="${_target.web.dir_}/${target.app.name}" failonerror="true"/> 
-        <copy todir="${_target.web.dir_}/${target.app.name}" overwrite="true" failonerror="false"> 
-            <fileset dir="${projects.dir}/web/${target.app.name}"/> 
-        </copy> 
-    </target>    
-    
-    <target name="-do-copy-download-core-module">
-        <groovy>
-        <![CDATA[
-            def filename = properties['params_file'];
-            if (filename == null) filename = '';
-
-            def arr = filename.split(','); 
-            def jarname = arr[0];
-            if (!jarname) return;
-            
-            if (!jarname.endsWith('.jar')) {
-                jarname = jarname+'.jar';
-            } 
-            
-            def srcfile = properties['params_srcdir'] + '/' + jarname;
-            ant.echo(' Copying ' + jarname + '...');
-            ant.copy(file:srcfile, todir:properties['params_todir'], overwrite:true, failonerror:false); 
-        ]]> 
-        </groovy>
-    </target>
-    
-    <target name="-do-copy-download-client-module">
-        <groovy>
-        <![CDATA[
-            def filename = properties['params_file'];
-            if (filename == null) filename = '';
-
-            def arr = filename.split(','); 
-            def projname = arr[0];
-            if (!projname) return;
-            
-            def srcfile = properties['params_srcdir'] + '/' + projname + '/dist/' + projname + '.jar';
-            ant.echo(' Copying ' + projname + '...');
-            ant.copy(file:srcfile, todir:properties['params_todir'], overwrite:true, failonerror:false); 
-        ]]> 
-        </groovy>
-    </target>    
-    
-    <target name="deploy-web-resources" depends="init">
-        <property name="_target.web.download.modules.dir_" value="${target.server.dir}/workspace/web/resources/downloads/modules"/>  
-        <copy todir="${target.server.dir}/workspace/web/resources" failonerror="false">
-            <fileset dir="../../resources" />
+        <copy todir="${target.app.dir}/connections" overwrite="true">
+            <fileset dir="${basedir}/connections"/>
         </copy>
-        <delete dir="${_target.web.download.modules.dir_}/modules" failonerror="false"/>
+        <copy todir="${target.app.dir}" overwrite="true" file="${basedir}/settings/app.conf"/> 
 
-        <echo message="Build download core modules ..."/>
-        <for list="${download.core.modules}" delimiter=":" param="val">
-            <sequential> 
-                <antcall target="-do-copy-download-core-module"> 
-                    <param name="params_todir" value="${_target.web.download.modules.dir_}/core"/> 
-                    <param name="params_srcdir" value="${platform-libs.dir}/client"/> 
-                    <param name="params_file" value="@{val}"/> 
-                </antcall> 
-            </sequential> 
-        </for> 
-        
-        <echo message="Build download shared modules ..."/>
-        <for list="${download.shared.modules}" delimiter=":" param="val">
-            <sequential>
-                <antcall target="-do-copy-download-client-module"> 
-                    <param name="params_todir" value="${_target.web.download.modules.dir_}/shared"/> 
-                    <param name="params_srcdir" value="${projects.dir}/client"/> 
-                    <param name="params_file" value="@{val}"/> 
-                </antcall>                 
-            </sequential>
-        </for> 
-        
-        <echo message="Build download app modules ..."/>
-        <for list="${download.app.modules}" delimiter=":" param="val">
-            <sequential>
-                <antcall target="-do-copy-download-client-module"> 
-                    <param name="params_todir" value="${_target.web.download.modules.dir_}"/> 
-                    <param name="params_srcdir" value="${projects.dir}/client"/> 
-                    <param name="params_file" value="@{val}"/> 
-                </antcall>                                 
-            </sequential>
-        </for> 
-        
-        <echo message="Generate updates.xml ..."/>
         <groovy>
-        <![CDATA[     
-            def buffer = new StringBuffer();
-            buffer.append('<app>');
-            buffer.append('\n<env>');
-            
-            def appenv = properties['download.app.env'];
-            if (appenv == null) appenv = '';
-            
-            appenv.split(':::').each{
-                buffer.append('\n\t' + it); 
+        <![CDATA[ 
+            def target_app_dir = properties['target.app.dir']; 
+            def parseExpression = {str-> 
+                if (!str) return '';
+
+                properties.each{k,v-> 
+                    str = str.replaceAll('\\$\\{'+ k +'\\}', v);  
+                }
+                return str; 
             } 
-            buffer.append('\n</env>'); 
-            
-            buffer.append('\n<modules>');  
+
+            ant.echo '';
+            def scanner = ant.fileScanner{
+                fileset(dir: target_app_dir + '/adapters') 
+            }
+            for (file in scanner) {
+                def fileid = 'adapters/' + file.name;
+                ant.echo 'Parsing ' + fileid + ' ...';
+                ant.loadfile(srcfile: file, property: fileid);
+                ant.echo(file: file, message: parseExpression(project.getProperty(fileid))); 
+            } 
+
+            scanner = ant.fileScanner{
+                fileset(dir: target_app_dir + '/connections') 
+            }
+            for (file in scanner) {
+                def fileid = 'connections/' + file.name;
+                ant.echo 'Parsing ' + fileid + ' ...';
+                ant.loadfile(srcfile: file, property: fileid);
+                ant.echo(file: file, message: parseExpression(project.getProperty(fileid))); 
+            } 
+
+            ant.echo 'Parsing app.conf ...';
+            ant.loadfile(srcfile: target_app_dir + '/app.conf', property: 'app.conf');
+            ant.echo(file: target_app_dir + '/app.conf', message: parseExpression(project.getProperty('app.conf'))); 
+
+            ant.echo 'Build '+ properties['target.app.name'] +' services ...';
+            def app_modules = properties['app.modules']; 
+            if (app_modules) { 
+                app_modules.split(':').each{ssn-> 
+                    ant.copy(todir: target_app_dir +'/modules/'+ ssn, overwrite:true){
+                        fileset(dir: properties['projects.dir'] + '/server/' + ssn) 
+                    } 
+                } 
+            } 
+        ]]> 
+        </groovy> 
+    </target> 
+
+    <target name="-build-web"> 
+        <groovy>
+        <![CDATA[ 
+            def osiris3_server_dir = properties['osiris3.server.dir'];         
+            def target_web_dir = properties['target.web.dir']; 
+            def platforms_dir = properties['platforms.dir']; 
+            def projects_dir = properties['projects.dir']; 
+            def basedir = properties['basedir']; 
+            def parseExpression = {str-> 
+                if (!str) return '';
+
+                properties.each{k,v-> 
+                    str = str.replaceAll('\\$\\{'+ k +'\\}', v);  
+                }
+                return str; 
+            } 
+
+            ant.echo '';
+            ant.echo 'Parsing anubis.hosts ...'; 
+            ant.copy(todir: target_web_dir, file: basedir+'/settings/anubis.hosts', overwrite:true); 
+            ant.loadfile(srcfile: target_web_dir+'/anubis.hosts', property: 'anubis.hosts'); 
+            ant.echo(file: target_web_dir+'/anubis.hosts', message: parseExpression(project.getProperty('anubis.hosts'))); 
+
+            ant.echo 'Build web platforms ...'; 
+            ant.delete(dir: target_web_dir+'/etracs', failonerror:false); 
+            ant.copy(todir: target_web_dir+'/etracs', overwrite:true){
+                fileset(dir: projects_dir + '/web/etracs')
+            }
+
+            ant.echo 'Build download core modules ...'; 
+            def download_modules_dir = target_web_dir + '/resources/downloads/modules';
+            ant.delete(dir: download_modules_dir, failonerror:false); 
+
+            def modules = properties['download.core.modules']; 
+            if (modules) { 
+                modules.split(':').each{ssn-> 
+                    ant.echo 'Copying ' + ssn + ' ...';
+                    ant.copy( 
+                        overwrite: true,  
+                        todir: download_modules_dir +'/core', 
+                        file: properties['platform.libs.dir'] +'/client/'+ ssn 
+                    ) 
+                } 
+            } 
+
+            ant.echo 'Build download shared modules ...'; 
+            modules = properties['download.shared.modules']; 
+            if (modules) { 
+                modules.split(':').each{ssn-> 
+                    ant.echo 'Copying ' + ssn + ' ...';
+                    ant.copy( 
+                        overwrite: true,  
+                        todir: download_modules_dir +'/shared', 
+                        file: properties['projects.dir'] +'/client/'+ ssn +'/dist/'+ ssn +'.jar' 
+                    ) 
+                } 
+            } 
+
+            ant.echo 'Build download app modules ...'; 
+            modules = properties['download.app.modules']; 
+            if (modules) { 
+                modules.split(':').each{ssn-> 
+                    ant.echo 'Copying ' + ssn + ' ...';
+                    ant.copy( 
+                        overwrite: true,
+                        todir: download_modules_dir, 
+                        file: properties['projects.dir'] +'/client/'+ ssn +'/dist/'+ ssn +'.jar' 
+                    ) 
+                } 
+            } 
+        ]]> 
+        </groovy> 
+    </target> 
+    
+    <target name="-build-updates">
+        <groovy>
+        <![CDATA[ 
+            ant.echo 'Generating updates.xml ...';
+            def parseExpression = {str-> 
+                if (!str) return '';
+
+                properties.each{k,v-> 
+                    str = str.replaceAll('\\$\\{'+ k +'\\}', v);  
+                }
+                return str; 
+            } 
+
+            def osiris3_server_dir = properties['osiris3.server.dir']; 
+            def target_web_dir = properties['target.web.dir']; 
+            def basedir = properties['basedir']; 
+            def download_modules_dir = target_web_dir + '/resources/downloads/modules';
+            def buffer = new StringBuilder();
+            buffer.append('\n\t<modules>'); 
             [
                 [name:'download.core.modules', title:'core libraries', prefix:'core/'],
                 [name:'download.shared.modules', title:'shared libraries', prefix:'shared/'],
                 [name:'download.app.modules', title:'main app libraries']
             ].each{item-> 
                 def sval = properties[item.name];
-                if (sval == null) sval = '';
+                if (sval == null) return;
                 if (!item.prefix) item.prefix='';
 
                 buffer.append('\n ');
-                buffer.append('\n\t<!-- '+item.title+' -->');
+                buffer.append('\n\t\t<!-- '+item.title+' -->');
                 sval.split(':').each{ 
                     def arr = it.split(','); 
                     def jarname = arr[0];
@@ -245,41 +287,17 @@
                         jarname = jarname+'.jar';
                     } 
                     def jarver = (arr.length > 1? arr[1]: '1.0'); 
-                    buffer.append('\n\t<module file="'+item.prefix+jarname+'" version="'+jarver+'"/>');
+                    buffer.append('\n\t\t<module file="'+item.prefix+jarname+'" version="'+jarver+'"/>');
                 } 
             } 
-            
-            buffer.append('\n</modules>'); 
-            buffer.append('\n</app>');
-            properties['generated.updates.xml']=buffer.toString();
-        ]]>     
-        </groovy>         
-        <echo file="${_target.web.download.modules.dir_}/updates.xml">${generated.updates.xml}</echo>         
-    </target> 
-    
-    <target name="deploy-client-platform" depends="init">
-        <groovy>
-        <![CDATA[ 
-            def sname = properties['target.platform.name'];
-            if (!sname) sname = properties['target.app.name'];
-            
-            def platform_name = sname + '_platform';
-            def target_platform_dir = properties['workspace.dir'] + '/' + platform_name;
-            def source_platform_dir = properties['platforms.dir'] + '/' + platform_name;
-            ant.echo('Deploying '+ platform_name +' ...');
-            ant.delete(dir: target_platform_dir, failonerror: false);
-            ant.copy(todir: target_platform_dir, overwrite: true, failonerror: false){
-                fileset(dir: source_platform_dir)
-            }
+            buffer.append('\n\t</modules>'); 
+
+            ant.loadfile(srcfile: basedir +'/settings/updates.xml', property:'updates.xml'); 
+            def updates_xml = parseExpression(project.getProperty('updates.xml')); 
+            updates_xml = updates_xml.replaceAll('\\$\\{updates.modules\\}', buffer.toString());
+            ant.echo(message: updates_xml, file:download_modules_dir +'/updates.xml'); 
         ]]> 
-        </groovy>   
-    </target>
-    
-    <target name="run-server" depends="init">
-        <exec executable="cmd" dir="${target.server.dir}/bin">
-            <arg value="/c"/>
-            <arg value="run2.bat"/>
-        </exec>
-    </target>
+        </groovy> 
+    </target> 
         
 </project>

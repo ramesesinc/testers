@@ -3,7 +3,6 @@
     
     <target name="-init">
         <property file="conf.properties"/>
-        <property name="incubation.dir" value="${rameses.dir}/incubation"/>
         
         <taskdef resource="net/sf/antcontrib/antcontrib.properties">
             <classpath>
@@ -12,35 +11,56 @@
         </taskdef> 
         <taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy">
             <classpath>
-                <pathelement location="../../lib/groovy-all-1.5.5.jar"/>
+                <pathelement location="${platform.libs.dir}/client/groovy-all-1.6.9.jar"/>
+                <pathelement location="${platform.libs.dir}/client/rameses-common2.jar"/>
             </classpath> 
-        </taskdef>
+        </taskdef> 
+        
+        <groovy>
+        <![CDATA[
+            def modulename = properties['lgu.type'];
+            if (!modulename) {
+                modulename = 'municipality';
+                properties['lgu.type'] = modulename;
+            } else if (modulename == 'remote') {
+                modulename = properties['remote.type']; 
+            } 
+
+            def conffile = new java.io.File(properties['basedir'] +'/modules/'+ modulename +'/conf.properties'); 
+            if (conffile.exists()) { 
+                ant.property(file: conffile.absolutePath); 
+                ant.property(name: 'setup.conf.path', value: conffile.absolutePath)
+            } else { 
+                throw new Exception(conffile.absolutePath + ' does not exist'); 
+            }  
+        ]]>
+        </groovy> 
     </target> 
     
     <target name="compile" depends="-init">
         <groovy>
-        <![CDATA[     
+        <![CDATA[ 
             def ANT_HOME = properties['ant.home']; 
             def CLASSPATH = properties['java.class.path']; 
 
             ['download.shared.modules', 'download.app.modules'].each{key-> 
-                def sjars = properties[key];
-                if (sjars == null) sjars = '';
+                def modules = properties[key];
+                if (!modules) return; 
 
-                def ant = new AntBuilder();
-                sjars.split(':').each{ 
+                modules.split(':').each{
                     def arr = it.split(','); 
                     def projname = arr[0];
                     if (!projname) return; 
+
+                    ant.echo 'Compiling ' + projname + ' ...';
                     
-                    ant.echo('compiling ' + projname);
-                    ant.exec(executable:ANT_HOME+'/bin/ant.bat', outputproperty:'cmdOutput', errorproperty:'cmdError', failonerror:false){ 
-                        arg(value: '-f')  
-                        arg(path: 'C:/RAMESES/projects/client/'+ projname +'/build.xml') 
-                        arg(line: 'clean jar')
-                        env(key: 'ANT_HOME', path: ANT_HOME)
-                        env(key: 'CLASSPATH', path: CLASSPATH)
-                    } 
+                    def proj_dir = properties['projects.dir'] +'/client/'+ projname;
+                    ant.delete(dir: proj_dir + '/dist', failonerror:false);
+                    
+                    def antb = new AntBuilder();                    
+                    antb.project.basedir = proj_dir; 
+                    antb.'import'(file: proj_dir + '/nbproject/build-impl.xml');
+                    antb.project.executeTarget('jar'); 
                 } 
             } 
         ]]> 

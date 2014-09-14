@@ -1,0 +1,4 @@
+provider=websocket
+ws.enabled=${notification.ws.enabled}
+ws.host=${notification.ws.host}
+ws.protocol=user

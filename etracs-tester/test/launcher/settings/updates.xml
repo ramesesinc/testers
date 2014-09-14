@@ -1,0 +1,15 @@
+<app>
+    <env>
+        app.title=ehoms v1.0.20140423
+        app.host=${target.app.host}
+        app.cluster=osiris3
+        app.context=${target.app.name}
+        app.help=http://localhost:8080/help
+        app.loader=com.rameses.osiris2.client.OsirisAppLoader
+        readTimeout=50000
+        connectionTimeout=5000
+    </env> 
+
+    ${updates.modules} 
+
+</app>

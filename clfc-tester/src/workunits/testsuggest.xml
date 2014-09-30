@@ -44,12 +44,40 @@
             },
             onselect: {o-> 
                 println 'suggesthandler onselect...' + o;
-            }
+            },
+            xonempty: {
+                println 'suggesthandler onempty...';
+            } 
         ] as SuggestModel 
+        
+        def suggestHandler2 = [
+            fetchList: {params->                 
+                if (params.searchtext == null) return suggestlist;
+
+                return suggestlist.findAll {
+                    def txt1 = it.name.toLowerCase();
+                    def txt2 = params.searchtext.toLowerCase();
+                    return (txt1.indexOf(txt2) >= 0);
+                };
+            },
+            onselect: {o-> 
+                println 'suggesthandler2 onselect...' + o;
+                entity.relative = o;
+            },
+            onempty: {
+                println 'suggesthandler2 onempty...';
+                entity.relative = null; 
+            } 
+        ] as SuggestModel         
         
         void doTest() {
             println entity;
         } 
+        
+        
+        def messagelist = [
+            [text: 'The quick brown fox jumps over the lazy dog. ']
+        ]; 
     }
     ]]>
     </code>

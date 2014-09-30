@@ -81,6 +81,8 @@ public class NewEmptyJUnitTest extends TestCase {
     }
  
     public void test3() throws Exception {
-        OsirisTestPlatform.testWorkunit("bank:create", null);
+        //OsirisTestPlatform.testWorkunit("bank:create", null);
+        String datetime = new java.sql.Timestamp(System.currentTimeMillis()).toString().replaceAll("-|:|\\.", "");
+        System.out.println(datetime.replaceAll(" ", ""));
     }
 }

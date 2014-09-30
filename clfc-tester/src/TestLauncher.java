@@ -23,7 +23,7 @@ public class TestLauncher {
         env.put("app.debug",true); 
         
         env.put("app.custom", "clfc"); 
-        //env.put("ws.host", "localhost:8060");         
+        env.put("ws.host", "localhost:8060");         
         
         env.put("fileserver.host", "localhost:8070"); 
         env.put("fileserver.cluster", "osiris3"); 

@@ -15,7 +15,6 @@
                 <pathelement location="../../lib/groovy-all-1.5.5.jar"/>
             </classpath> 
         </taskdef>
-        
     </target> 
     
     <target name="compile" depends="-init">

@@ -33,6 +33,7 @@ public class TestNotification extends TestCase {
         appenv.put("app.cluster", "osiris3");
         appenv.put("app.context", "clfc");        
         ctx = new ScriptServiceContext(appenv); 
+        
         env.put("USER", "sa");
         env.put("USERID", "sa");
     }

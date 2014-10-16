@@ -14,7 +14,7 @@ class TestFileController
     @Service(value='FileUploadService', connection='fileserver')
     def proxy;
         
-    @XConnection('filereader')
+    //@XConnection('filereader')
     
     def fileChooser;
     

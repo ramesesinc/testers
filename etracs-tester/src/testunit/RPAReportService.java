@@ -7,24 +7,27 @@ package testunit;
 import com.rameses.common.AbstractAsyncHandler;
 import com.rameses.common.AsyncHandler;
 import com.rameses.service.ScriptServiceContext;
+import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
-import junit.framework.TestCase;
 
 /**
  *
- * @author compaq
+ * @author wflores 
  */
-public class NewEmptyJUnitTest extends TestCase {
-
-    private ScriptServiceContext ctx;
-    private Map env = new HashMap();
-
-    public NewEmptyJUnitTest(String testName) {
-        super(testName);
+public class RPAReportService {
+    
+    public static void main(String[] args) throws Exception {
+        RPAReportService main = new RPAReportService(); 
+        main.setUp(); 
+        main.testMain();
+        
     }
 
-    protected void setUp() throws Exception {
+    private ScriptServiceContext ctx;
+    private Map env = new HashMap();    
+    
+    private void setUp() throws Exception {
         Map appenv = new HashMap();
         appenv.put("app.host", "localhost:8070");
         appenv.put("app.cluster", "osiris3");
@@ -35,10 +38,7 @@ public class NewEmptyJUnitTest extends TestCase {
         env.put("USER", "sa");
         env.put("USERID", "sa");
     }
-
-    protected void tearDown() throws Exception {
-    }
-
+    
     public void testMain() throws Exception {
 
         Map params = new HashMap();
@@ -65,6 +65,7 @@ public class NewEmptyJUnitTest extends TestCase {
         
         public void onTimeout() {
             System.out.println("onTimeout-> ");
+            retry();
         }
 
         public void onCancel() {

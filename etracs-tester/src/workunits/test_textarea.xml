@@ -1,0 +1,15 @@
+<workunit>   
+    <invokers>
+        <invoker folderid="/menu/test" caption="Test TextArea" action="init" target="popup"/> 
+        <invoker type="test:textarea"/> 
+        
+        <invoker type="formActions" caption="Test #1" action="doTest"/> 
+        <invoker type="formActions" caption="Test #2" action="doTest"/> 
+    </invokers>
+    
+    <code class="test.text.TestTextAreaController"/> 
+    
+    <pages>
+        <page name="test.text.TestTextAreaPage"/> 
+    </pages>
+</workunit>

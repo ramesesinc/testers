@@ -11,10 +11,10 @@
         </taskdef> 
         <taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy">
             <classpath>
-                <pathelement location="${platform.libs.dir}/client/groovy-all-1.6.9.jar"/>
+                <pathelement location="${platform.libs.dir}/client/groovy-all-1.5.5.jar"/>
                 <pathelement location="${platform.libs.dir}/client/rameses-common2.jar"/>
             </classpath> 
-        </taskdef>  
+        </taskdef> 
 
         <groovy>
         <![CDATA[

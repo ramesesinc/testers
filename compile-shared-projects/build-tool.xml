@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="build-tool" default="default" basedir=".">
+
+    <target name="init">
+        <property file="nbproject/project.properties"/> 
+        <property file="../lib/conf.properties"/> 
+        
+        <taskdef resource="net/sf/antcontrib/antcontrib.properties">
+            <classpath>
+                <pathelement location="../lib/ant-contrib-0.6.jar"/>
+            </classpath>
+        </taskdef> 
+        <taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy">
+            <classpath>
+                <pathelement location="${platform-libs.dir}/client/groovy-all-1.5.5.jar"/>
+                <pathelement location="${platform-libs.dir}/client/rameses-common2.jar"/>
+            </classpath> 
+        </taskdef> 
+    </target> 
+    
+    <target name="deploy-client-to-gitrepo-etracs25" depends="init" description="Deploy to projects/client">
+        <groovy>
+        <![CDATA[       
+            println 'Deploying shared projects ...';
+            
+            def source_proj_dir = properties['projects.dir']; 
+            def target_proj_dir = properties['gitrepo.dir'] + '/etracs25/projects'; 
+            
+            properties.each{k,v-> 
+                if (!k.toString().startsWith('project.')) return;
+                
+                def projname = k.substring(k.indexOf('.')+1); 
+                def projdistdir = new java.io.File(source_proj_dir + '/client/' + projname + '/dist'); 
+                ant.copy( todir:target_proj_dir + '/client', overwrite:true, verbose:true ){
+                    fileset( dir: projdistdir )
+                } 
+            } 
+        ]]>     
+        </groovy>
+    </target> 
+    
+    <target name="deploy-services-to-gitrepo-etracs25" depends="init" description="Deploy to projects/server">
+        <groovy>
+        <![CDATA[       
+            println 'Deploying shared services ...';
+            
+            def services = [
+                '00-system-services.jar', 
+                '01-rameses-enterprise-admin-services.jar', 
+                '02-desktop-client-services.jar', 
+                '02-mobile-client-services.jar', 
+                '02-web-client-services.jar', 
+                '03-rameses-rule-services.jar', 
+                '03-rameses-workflow-services.jar',
+                'rameses-enterprise-accounts-services.jar',
+                'rameses-enterprise-entity-services.jar',
+                'rameses-enterprise-inventory-services.jar', 
+                'rameses-enterprise-treasury-services.jar' 
+            ]; 
+            
+            def source_proj_dir = properties['projects.dir']; 
+            def target_proj_dir = properties['gitrepo.dir'] + '/etracs25/projects'; 
+            
+            services.each{sname-> 
+                ant.delete( dir: target_proj_dir + '/server/' + sname );
+                ant.copy( todir:target_proj_dir + '/server/' + sname, overwrite:true, verbose:true ){
+                    fileset( dir: source_proj_dir + '/server/' + sname )
+                } 
+            } 
+        ]]> 
+        </groovy>
+    </target> 
+</project>

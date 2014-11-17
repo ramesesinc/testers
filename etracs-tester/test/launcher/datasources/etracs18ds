@@ -1,0 +1,5 @@
+dialect=${etracs18ds.dialect}
+driverClass=${etracs18ds.driverClass}
+url=${etracs18ds.url}
+user=${etracs18ds.user}
+pwd=${etracs18ds.pwd}

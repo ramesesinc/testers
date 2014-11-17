@@ -1,0 +1,11 @@
+<workunit>   
+    <invokers>
+        <invoker folderid="/menu/test" caption="Test Data" action="init"/> 
+    </invokers>
+    
+    <code class="test.datatable.HomeController"/>
+    
+    <pages>
+        <page name="test.datatable.HomePage"/> 
+    </pages>
+</workunit>

@@ -1,0 +1,15 @@
+<workunit>   
+    <invokers>
+        <invoker type="home:tab" caption="Tab Item #1" action="init1"/> 
+        <invoker type="home:tab" caption="Tab Item #2" action="init2"/> 
+        <invoker type="home:tab" caption="Tab Item #3" action="init3"/> 
+        
+        <invoker type="home:tab:open" caption="Dynamic Tab" action="open"/> 
+    </invokers>
+    
+    <code class="test.tab.ItemController"/>
+    
+    <pages>
+        <page name="test.tab.ItemPage"/> 
+    </pages>
+</workunit>

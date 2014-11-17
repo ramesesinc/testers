@@ -21,8 +21,9 @@ public class TestLauncher {
         env.put("app.cluster","osiris3"); 
         env.put("app.debug",true); 
         
-        env.put("report.custom", "iriga");
-        //env.put("app.custom", "etracs"); 
+        //env.put("report.custom", "aklanterminal");
+        //env.put("app.custom", "aklanterminal"); 
+        
         //env.put("ws.host", "localhost:8060");         
         OsirisTestPlatform.runTest(env, new HashMap(), new HashMap()); 
     }

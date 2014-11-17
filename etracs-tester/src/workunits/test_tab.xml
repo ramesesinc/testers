@@ -1,0 +1,11 @@
+<workunit>   
+    <invokers>
+        <invoker folderid="/menu/test" caption="Test Tab" action="init"/> 
+    </invokers>
+    
+    <code class="test.tab.HomeController"/>
+    
+    <pages>
+        <page name="test.tab.HomePage"/> 
+    </pages>
+</workunit>
